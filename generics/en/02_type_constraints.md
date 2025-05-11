@@ -37,7 +37,105 @@ void main() {
 
 The beauty here is that we get compile-time safety. If someone tries to use a non-numeric type, they'll get an error before the code even runs.
 
-## Real-World Application: Processing Pipeline
+## Real-World Application(Example 1): API Response Parsing
+
+After grasping the basics, Ppt faced a more complex challenge: parsing JSON responses from various API endpoints. Each endpoint returned different data structures, but the process of handling responses (checking for errors, extracting data) was similar across all of them.
+"I bet I can use generics to solve this," Ppt thought. He sketched out some model classes first:
+
+```dart
+
+class User {
+  final String id;
+  final String name;
+  User(this.id, this.name);
+
+  factory User.fromJson(Map<String, dynamic> json) {
+    return User(json['id'] as String, json['name'] as String);
+  }
+
+  @override
+  String toString() => 'User(id: $id, name: $name)';
+}
+
+class Product {
+  final String sku;
+  final double price;
+  Product(this.sku, this.price);
+
+  factory Product.fromJson(Map<String, dynamic> json) {
+    return Product(json['sku'] as String, (json['price'] as num).toDouble());
+  }
+
+  @override
+  String toString() => 'Product(sku: $sku, price: $price)';
+}
+```
+
+Then, he created a generic parser class that could work with any model type:
+
+```dart
+class ApiResponseParser<T> {
+    final T Function(Map<String, dynamic> jsonData) fromJsonConverter;
+
+    ApiResponseParser(this.fromJsonConverter);
+
+    T parse(Map<String, dynamic> responseData) {
+        // Common response checking logic
+        if (responseData.containsKey('error')) {
+            throw Exception('API Error: ${responseData['error']}');
+        }
+
+        // Extract the data payload
+        final data = responseData['data'] as Map<String, dynamic>;
+
+        // Use the provided converter to create an instance of T
+        return fromJsonConverter(data);
+    }
+}
+```
+
+Using this approach, Ppt could now parse any API response with minimal code:
+
+```dart
+void main() {
+    // Create a parser for User objects
+    final userParser = ApiResponseParser<User>(User.fromJson);
+
+    // Simulate an API response for a user
+    final userApiResponse = {
+        'status': 'success',
+        'data': {'id': 'user123', 'name': 'Alice Wonderland'}
+    };
+    final User alice = userParser.parse(userApiResponse);
+    print(alice); // Output: User(id: user123, name: Alice Wonderland)
+
+    // Create a parser for Product objects
+    final productParser = ApiResponseParser<Product>(Product.fromJson);
+
+    // Simulate an API response for a product
+    final productApiResponse = {
+        'status': 'success',
+        'data': {'sku': 'DARTBOOK01', 'price': 29.99}
+    };
+    final Product dartBook = productParser.parse(productApiResponse);
+    print(dartBook); // Output: Product(sku: DARTBOOK01, price: 29.99)
+
+    // Simulate an error response
+    final errorResponse = {
+        'status': 'error',
+        'error': 'Invalid request'
+    };
+    try {
+        userParser.parse(errorResponse);
+    } catch (e) {
+        print(e); // Output: Exception: API Error: Invalid request
+    }
+}
+```
+
+"This is amazing," Ppt realized. "With just a few lines of code, I can handle any API response type!"
+
+## Real-World Application (Example 2): Processing Pipeline
 
 Let's see how Ppt combined these concepts to build a processing pipeline for his lab data:
 
@@ -199,56 +297,4 @@ Original: 37.2 -> Processed: 74.4
 Original: 36.9 -> Processed: 73.8
 Original: Patient showing improvement -> Processed: PATIENT SHOWING IMPROVEMENT
 Original: Prescribed medication X -> Processed: PRESCRIBED MEDICATION X
-```
-
-## Advanced Generic Patterns
-
-Now that you've seen the basics in action, let's look at some more advanced patterns that Ppt implemented:
-
-### 1. Generic Extension Methods
-
-Ppt wanted to add functionality to his `Data<T>` class without modifying it:
-
-```dart
-extension NumericDataExtension<T extends num> on Data<T> {
-  Data<T> applyFactor(T factor) {
-    return Data<T>((value * factor) as T, DateTime.now());
-  }
-  
-  Data<double> average(Data<T> other) {
-    return Data<double>((value + other.value) / 2, DateTime.now());
-  }
-}
-
-extension StringDataExtension on Data<String> {
-  Data<String> appendText(String text) {
-    return Data<String>(value + text, DateTime.now());
-  }
-  
-  Data<int> get wordCount {
-    return Data<int>(value.split(' ').length, DateTime.now());
-  }
-}
-```
-
-Usage example:
-
-```dart
-void main() {
-  final temp1 = Data<double>(36.5, DateTime.now());
-  final temp2 = Data<double>(37.5, DateTime.now());
-  
-  final scaledTemp = temp1.applyFactor(2.0);
-  final avgTemp = temp1.average(temp2);
-  
-  print(scaledTemp.value); // 73.0
-  print(avgTemp.value); // 37.0
-  
-  final note = Data<String>('Patient recovering well', DateTime.now());
-  final updatedNote = note.appendText(' - continues medication');
-  final words = note.wordCount;
-  
-  print(updatedNote.value); // Patient recovering well - continues medication
-  print(words.value); // 3
-}
 ```
