@@ -59,13 +59,10 @@ intermediate-dart-concepts/
 │
 ├── static-analysis/
    ├── en/
-   │   ├── 01_intro_to_linter.md
-   │   ├── 02_important_rules.md
+   |   ├── 01_static_analysis.md
    │
    └── bn/
        ├── 01_intro_to_linter.md
-       ├── 02_important_rules.md
-
 ```
 
 ## 🧪 Prerequisites
