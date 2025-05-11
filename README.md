@@ -46,29 +46,26 @@ intermediate-dart-concepts/
 │
 ├── generics/
 │   ├── en/
-│   │   ├── 01_generic_class.md
+│   │   ├── 01_generic.md
 │   │   ├── 02_type_constraints.md
 │   │   ├── 03_class_vs_function_generics.md
+│   │   └── 04_when_to_use.md
 │   │
 │   └── bn/
-│       ├── 01_generic_class.md
+│       ├── 01_generic.md
 │       ├── 02_type_constraints.md
 │       ├── 03_class_vs_function_generics.md
+│       └── 04_when_to_use.md
 │
 ├── static-analysis/
-│   ├── en/
-│   │   ├── 01_intro_to_linter.md
-│   │   ├── 02_important_rules.md
-│   │
-│   └── bn/
-│       ├── 01_intro_to_linter.md
-│       ├── 02_important_rules.md
-│
-└── examples/
-    ├── generic_box.dart
-    ├── pet_house.dart
-    ├── repository_examples.dart
-    ├── linter_rules_demo.dart
+   ├── en/
+   │   ├── 01_intro_to_linter.md
+   │   ├── 02_important_rules.md
+   │
+   └── bn/
+       ├── 01_intro_to_linter.md
+       ├── 02_important_rules.md
+
 ```
 
 ## 🧪 Prerequisites
