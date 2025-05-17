@@ -24,12 +24,29 @@ Ppt nodded. "That's checking if the user is an admin."
 
 ## How Static Analysis Works
 
-Ragib grabbed a marker and drew on the whiteboard:
+<div style="display: flex; gap: 15px; align-items: flex-start;">
+
+<div style="flex: 1; text-align: center;">
+  <img src="../static_analysis_simple_flowchart.png" alt="Left Image" style="max-width: 100%; height: 250px;" />
+  <br/>
+  <em>Fig: Simple Static Analysis Flowchart </em>
+</div>
+
+<div style="flex: 1; text-align: center;">
+  <img src="../static_analysis_workflow.png" alt="Right Image" style="max-width: 100%; height: 250px;" />
+  <br/>
+  <em>Fig: Static Analysis Workflow</em>
+</div>
+
+</div>
 
 1. **Parse the Code**: The analyzer reads your .dart files and understands their structure.
 2. **Build an Abstract Syntax Tree (AST)**: It creates a tree representation of your code.
 3. **Semantic Analysis**: It examines types, resolves names, and understands relationships.
-4. **Run Diagnostics**: Based on configured rules, it identifies and reports issues.
+4. **Type Checking**: It verifies that types match and operations are valid.
+5. **Apply Lint Rules**: It checks code against configured style and best practice rules.
+6. **Generate Diagnostics**: It compiles all issues into reportable format.
+7. **Report Issues**: It presents problems to the developer through IDE or command line.
 
 "It's like having a code review from the most detail-oriented teammate imaginable," Ragib explained. "One who never gets tired or misses anything."
 
@@ -58,6 +75,23 @@ Ppt looked intrigued. "So it's like having a shared rulebook that the entire tea
 "This sounds useful," Ppt admitted. "How do I start using it?"
 
 "Good news! You already are, to some extent," Ragib smiled. "The Dart SDK comes with built-in analysis capabilities. Your IDE probably shows warnings and errors in real-time. But we can be more intentional about it."
+
+### IDE Integration
+
+Ragib opened VS Code and pointed to the screen. "See these red squiggly lines? That's the analyzer telling you there's an error. The yellow ones are warnings. If you hover over them, you'll get detailed information about the issue."
+
+![static_analysis_errors](../vs_code_screenshot.png)
+
+"And here in the Problems panel, you can see all the issues in one place, organized by file. You can click on an issue to jump right to the problem location in your code."
+
+```terminal
+A value of type 'int' can't be assigned to a variable of type 'String'.
+Try changing the type of the variable, or casting the right-hand type to 'String'.
+```
+
+"Your IDE reads the settings from your project's `analysis_options.yaml` file, so everyone on the team sees the same warnings and errors," Ragib explained.
+
+### Command Line Analysis
 
 Ragib opened a terminal and typed:
 
@@ -93,13 +127,96 @@ linter:
 
 "This file is your detective's instruction manual," Ragib explained. "The `include` directive adds a set of recommended rules. Then we customize by excluding generated files from analysis, enabling stricter type checking, and adding specific linter rules."
 
+### Popular Lint Packages
+
+"Beyond the basic `package:lints`, there are several popular lint packages that teams can adopt," Ragib continued, opening the browser to show some examples:
+
+1. **very_good_analysis**: Created by Very Good Ventures, it enforces stricter rules for Flutter apps
+2. **pedantic**: Originally from Google, provides a stricter set of rules
+3. **flutter_lints**: The official Flutter team's lint rules for Flutter projects
+4. **effective_dart**: Based on Dart's Effective Dart guidelines
+
+"To use any of these, you'd simply replace the `include` statement in your `analysis_options.yaml`. For example:
+
+```yaml
+include: package:very_good_analysis/analysis_options.yaml
+```
+
 Mashrafi looked at the configuration. "And we can commit this file to our repository so everyone on the team uses the exact same rules?"
 
 "Absolutely," Ragib confirmed. "Once it's in version control, every team member will have the same static analysis configuration. Your IDE will show warnings based on these shared rules, and your CI/CD pipeline can enforce them during builds."
 
-Mehraj added, "This would have saved us from that null safety debate last sprint."
+### Enforcing Static Analysis in CI/CD
 
-"And prevented the inconsistent file naming that's making our directory structure so confusing," Rafi noted.
+"Speaking of CI/CD," Ragib said, "let's set up our pipeline to enforce these rules automatically." He opened the team's GitHub Actions workflow file and added:
+
+```yaml
+# .github/workflows/analyze.yml
+name: Dart Analysis
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dart-lang/setup-dart@v1
+      
+      - name: Install dependencies
+        run: dart pub get
+        
+      - name: Analyze code
+        run: dart analyze --fatal-infos
+```
+
+"With this workflow, every pull request and push to main will be checked against our static analysis rules. If the analysis fails, the build fails, preventing problematic code from being merged."
+
+"For Flutter projects," Ragib added, "you'd use `flutter analyze --fatal-infos` instead."
+
+Ppt nodded. "So this ensures that even if someone forgets to run the analyzer locally, or ignores the warnings, they can't merge code that violates our standards?"
+
+"Exactly," Ragib replied. "It's an automated gatekeeper for code quality."
+
+## Suppressing Lint Rules
+
+"But what if there's a legitimate reason to break a rule?" Mehraj asked. "Sometimes we need to do something unusual for a specific case."
+
+"Great question," Ragib answered. "There are two main ways to suppress lint rules temporarily:
+
+### 1. Line-Level Suppression
+
+```dart
+// ignore: avoid_print
+print('This print statement is necessary for debugging');
+```
+
+### 2. File-Level Suppression
+
+```dart
+// ignore_for_file: avoid_print, unnecessary_this
+```
+
+"However," Ragib cautioned, "these should be used sparingly and with good reason. Each suppression should ideally include a comment explaining why the rule is being ignored."
+
+"When is it appropriate to use suppressions?" Ppt asked.
+
+"Generally, only when:
+
+1. The rule doesn't apply in this specific context
+2. Following the rule would make the code less readable or maintainable
+3. You're dealing with generated code that you can't modify
+4. You're working with a legacy codebase during transition
+
+"It's almost always better to fix the issue than to suppress the warning," Ragib emphasized. "Suppressions should be the exception, not the rule."
+
+Mehraj nodded in understanding. "So we should document why we're ignoring the rule, not just suppress it silently."
+
+"Precisely," Ragib confirmed.
 
 ## Understanding Linter Rules
 
@@ -293,5 +410,7 @@ As the team left the meeting, they had a shared understanding that static analys
 6. **Custom lint rules** can enforce team-specific conventions through a separate package.
 7. **Continuous feedback** helps developers learn and improve their code quality over time.
 8. **Reduced onboarding time** for new team members who learn conventions automatically.
+9. **CI/CD integration** ensures nobody can merge code that doesn't pass static analysis.
+10. **Multiple lint packages** provide different levels of strictness for different team needs.
 
 With static analysis as your detective, your team's code will be cleaner, more maintainable, and less error-prone—a true win for any development project.
