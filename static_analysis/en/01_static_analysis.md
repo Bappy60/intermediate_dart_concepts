@@ -282,7 +282,8 @@ Mashrafi spoke up, "It's like we're establishing a shared language for our code.
 
 Ragib created a new directory structure:
 
-```dart
+```yaml
+
 team_lints/
   pubspec.yaml
   lib/
